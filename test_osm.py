@@ -1,3 +1,22 @@
+"""
+Orbit Simple Monitor (OSM)
+A host-level monitoring tool running inside a Docker container.
+
+Author: @OrbitTurner
+Description:
+  - Gathers CPU, RAM, and DISK usage from the host.
+  - Stores data in a SQLite database.
+  - Sends alerts via Slack and/or Email if thresholds are exceeded.
+  - Cleans up data older than 30 days.
+  - Made From Senegal 🇸🇳 🚀
+"""
+"""
+Orbit Simple Monitor (OSM) - Open Source License / GNU AFFERO GENERAL PUBLIC LICENSE (OSM-License v1.0)
+This software is free for personal and non-commercial use.
+Selling or licensing this software for profit is strictly prohibited.
+Full license available at: https://github.com/orbitturner/osm/LICENSE
+"""
+
 import pytest
 import sqlite3
 import osm

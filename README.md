@@ -2,6 +2,8 @@
 
 **Orbit Simple Monitor (OSM)** is a **lightweight** host-level monitoring tool that measures **CPU, RAM, and DISK** usage of a **Linux Docker host**, logs them in **SQLite**, and sends **Slack/Email** alerts if thresholds are exceeded! Made with ❤️ in Senegal.
 
+<img src="./assets/OSM-COVER.jpg" alt="Orbit Simple Monitor" width="100%" center/>
+
 <br/>
 
 ## 🌟 Features
@@ -123,7 +125,7 @@ docker run --rm \
 
 1. **Clone** this repo:
    ```bash
-   git clone https://github.com/<YOUR_NAME>/orbit-simple-monitor.git
+   git clone https://github.com/orbitturner/orbit-simple-monitor.git
    cd orbit-simple-monitor
    ```
 2. **Create a virtual environment**:

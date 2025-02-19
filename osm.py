@@ -11,6 +11,12 @@ Description:
   - Cleans up data older than 30 days.
   - Made From Senegal 🇸🇳 🚀
 """
+"""
+Orbit Simple Monitor (OSM) - Open Source License / GNU AFFERO GENERAL PUBLIC LICENSE (OSM-License v1.0)
+This software is free for personal and non-commercial use.
+Selling or licensing this software for profit is strictly prohibited.
+Full license available at: https://github.com/orbitturner/osm/LICENSE
+"""
 
 import os
 import time
