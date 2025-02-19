@@ -18,20 +18,20 @@ Selling or licensing this software for profit is strictly prohibited.
 Full license available at: https://github.com/orbitturner/osm/LICENSE
 """
 
+from pyfiglet import figlet_format
+from loguru import logger
+from email.header import Header
+from email.mime.text import MIMEText
+from datetime import datetime, timedelta
+import sys
+import signal
+import psutil
+import requests
+import smtplib
+import schedule
+import sqlite3
 import time
 import os
-import sqlite3
-import schedule
-import smtplib
-import requests
-import psutil
-import signal
-import sys
-from datetime import datetime, timedelta
-from email.mime.text import MIMEText
-from email.header import Header
-from loguru import logger
-from pyfiglet import figlet_format
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1) ENVIRONMENT CONFIGURATION
@@ -63,7 +63,7 @@ HOSTNAME = os.getenv("YOUR_SERVER_NAME", "SamaServerBouNeikhBi")
 HOST_PROC_PATH = "/host_proc"
 
 # Override psutil's default /proc path for host-level monitoring only if we are not in a windows host
-psutil.PROCFS_PATH = HOST_PROC_PATH
+# psutil.PROCFS_PATH = HOST_PROC_PATH
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -207,21 +207,38 @@ def send_email(message: str):
         msg["From"] = SMTP_USER
         msg["To"] = ALERT_EMAIL
 
-        if SMTP_PORT == 465:
-            # Use SSL directly for port 465
-            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
-                server.login(SMTP_USER, SMTP_PASS)
-        else:
-            # Use STARTTLS for other ports (e.g., 587)
-            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-                server.starttls()
-                server.login(SMTP_USER, SMTP_PASS)
+        logger.info(
+            f"📧 Attempting to send email alert to {ALERT_EMAIL} via {SMTP_SERVER}:{SMTP_PORT}")
 
+        if SMTP_PORT == 465:
+            # Use direct SSL connection for port 465
+            logger.info("🔒 Using SMTP_SSL for port 465")
+            server = smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT)
+            server.ehlo()  # Say hello to the server
+        else:
+            # Use STARTTLS for ports like 587
+            logger.info("🔐 Using STARTTLS for port 587 or other ports")
+            server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+
+        # Login to the SMTP server
+        server.login(SMTP_USER, SMTP_PASS)
+        logger.success("✅ SMTP login successful!")
+
+        # Send the email
         server.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
         logger.success("✅ Email alert sent successfully.")
 
+        # Close the connection
+        server.quit()
+
+    except smtplib.SMTPException as e:
+        logger.error(f"❌ SMTP error: {e}")
     except Exception as e:
         logger.error(f"❌ Email alert failed: {e}")
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 7) CLEANUP OLD DATA (>30 days)
