@@ -18,8 +18,8 @@ Selling or licensing this software for profit is strictly prohibited.
 Full license available at: https://github.com/orbitturner/osm/LICENSE
 """
 
-import os
 import time
+import os
 import sqlite3
 import schedule
 import smtplib
@@ -30,8 +30,8 @@ import sys
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.header import Header
-from pyfiglet import figlet_format
 from loguru import logger
+from pyfiglet import figlet_format
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1) ENVIRONMENT CONFIGURATION
@@ -207,18 +207,27 @@ def send_email(message: str):
         msg["From"] = SMTP_USER
         msg["To"] = ALERT_EMAIL
 
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASS)
-            server.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
+        if SMTP_PORT == 465:
+            # Use SSL directly for port 465
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+                server.login(SMTP_USER, SMTP_PASS)
+        else:
+            # Use STARTTLS for other ports (e.g., 587)
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASS)
+
+        server.sendmail(SMTP_USER, ALERT_EMAIL, msg.as_string())
         logger.success("✅ Email alert sent successfully.")
+
     except Exception as e:
         logger.error(f"❌ Email alert failed: {e}")
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 7) CLEANUP OLD DATA (>30 days)
 # ─────────────────────────────────────────────────────────────────────────────
+
+
 def cleanup_history():
     cutoff_date = datetime.now() - timedelta(days=30)
     with sqlite3.connect(DB_FILE) as conn:
