@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  osm:
+    build: .
+    container_name: osm-host-monitor
+    privileged: true
+    environment:
+      YOUR_SERVER_NAME: "Sama Server"
+      DB_FILE: "/data/osm.db"
+      CPU_THRESHOLD: 80
+      RAM_THRESHOLD: 80
+      DISK_THRESHOLD: 80
+      CHECK_INTERVAL: 1
+      CHECK_INTERVAL_UNIT: "m" # m: minutes, h: hours, s: seconds
+      SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/XXX/YYY/ZZZ"
+      ALERT_EMAIL: "alerts@example.com"
+      SMTP_SERVER: "smtp.example.com"
+      SMTP_PORT: 587
+      SMTP_USER: "user@example.com"
+      SMTP_PASS: "secret"
+      ALERT_CHANNELS: "SLACK,EMAIL"
+    volumes:
+      - ./osm_data:/data
+      # read-only /proc mount for host-level monitoring
+      - /proc:/host_proc:ro
+    restart: unless-stopped
+
+volumes:
+  osm_data:
+    driver: local

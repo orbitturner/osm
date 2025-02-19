@@ -1,0 +1,33 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore log files
+*.log
+osm.db
+
+# Ignore environment variable files
+.env
+
+# Ignore build output directories
+dist/
+build/
+
+# Ignore temporary files
+*.tmp
+*.swp
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE specific files
+.vscode/
+.idea/
+*.iml
+
+# ignore Cache files
+.pytest_cache/
+__pycache__/
+
+# Ignore Virtual Environment
+venv/
