@@ -151,6 +151,82 @@ docker push orbitturner/orbit-simple-monitor:latest
 | **macOS** 🟡 | ⚠️ Limited | No host-level metrics (Docker limits access). |
 
 ---
+---
+## 🔐 Security Hardening Guide (For Paranoids & Hardcore Ops)  
+
+If you're security-conscious and want to **lock down** OSM as much as possible, follow these additional hardening steps.  
+
+### 🛡 1) Run OSM with **AppArmor** or **Seccomp**  
+By default, Docker **seccomp** restricts syscalls. You can explicitly enforce a **custom security profile**:  
+```yaml
+    security_opt:
+      - seccomp=your-seccomp-profile.json
+      - apparmor=your-apparmor-profile
+```
+**Recommended**: Use the **default** seccomp profile unless you need extra restrictions.  
+
+
+### 📦 2) Drop Unnecessary Capabilities  
+Minimize privileges by dropping unneeded Linux capabilities:  
+```yaml
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN       # Allow changing file ownership if needed for logging
+      - SETUID      # Allow user switching if absolutely required
+      - SETGID
+```
+If you don’t need user switching, remove `SETUID` and `SETGID`.
+
+
+### 🔐 3) Enforce Read-Only FileSystem  
+For extra security, make the **entire container read-only** except the necessary **data** directory:  
+```yaml
+    read_only: true
+    tmpfs:
+      - /tmp        # Allow temporary files to exist
+    volumes:
+      - ./osm_data:/data
+```
+This prevents **unexpected writes** to the container filesystem.
+
+
+### 🦾 4) Restrict Networking (No Internet Access)  
+If you don’t need OSM to **send alerts externally**, disable networking:  
+```yaml
+    network_mode: none
+```
+Otherwise, **allow only outbound connections** for SMTP/Slack alerts.
+
+
+### 🏴‍☠️ 5) Prevent Privilege Escalation  
+Ensure OSM cannot **gain root privileges** even if compromised:  
+```yaml
+    privileged: false
+    user: "osm"
+```
+This blocks dangerous privilege escalations.
+
+
+### 🔍 6) Audit Logs & Container Activity  
+- Monitor container logs **(via external logging tools)**.  
+- Use **Falco** or **Auditd** to detect suspicious activity inside the container.  
+- Implement **fail2ban** rules for SMTP brute-force attacks (if public).  
+
+
+### 🚨 7) Run OSM in a Firejail Sandbox (Extreme Security)  
+For **maximum containment**, run OSM inside **Firejail**:  
+```bash
+firejail --noprofile --net=none docker run --rm --read-only orbitturner/orbit-simple-monitor
+```
+This isolates OSM even further from the host system.
+
+
+### 🔒 Final Thoughts  
+These steps provide **extra layers of security** beyond what is necessary for most users. If OSM runs in a **trusted internal network**, these **might be overkill**—but for **public-facing environments**, **better safe than sorry**! 🚀
+
+---
+---
 
 ## 💬 **Community & Support**
 💡 **Found a bug? Need a feature?** Open an [issue](https://github.com/orbitturner/orbit-simple-monitor/issues)!  
