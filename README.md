@@ -1,32 +1,36 @@
-# Orbit Simple Monitor (OSM) 🚀🪐
+# **🛰 Orbit Simple Monitor (OSM) 🚀**  
+**Lightweight server monitoring with Slack & Email alerts!**  
 
-**Orbit Simple Monitor (OSM)** is a **lightweight** host-level monitoring tool that measures **CPU, RAM, and DISK** usage of a **Linux Docker host**, logs them in **SQLite**, and sends **Slack/Email** alerts if thresholds are exceeded! Made with ❤️ in Senegal.
+OSM is a **simple, lightweight** monitoring tool that tracks **CPU, RAM, and DISK** usage **on Linux Docker hosts**.  
+It **logs everything**, **sends alerts** when usage spikes, and runs in a **tiny Docker container**.  
+
+💾 **No need for Prometheus, Grafana, or heavy setups** – just plug and play!  
+💡 **Built for developers & sysadmins** who want **fast, easy monitoring**.  
+
+> 🛠 **Made with ❤️ in Senegal** 🇸🇳  
+
+---
+
+### 🌟 **Key Features**
+✅ **Monitor your Linux host** (not just the container)  
+✅ **Set usage thresholds** for CPU, RAM, and DISK  
+✅ **Get real-time alerts** on **Slack & Email**  
+✅ **Automatic log rotation** & **SQLite storage**  
+✅ **Simple Docker Compose setup**  
+✅ **Daily cleanup of old logs** (>30 days)  
+✅ **Zero dependencies** – just Docker!  
 
 <img src="./assets/OSM-COVER.jpg" alt="Orbit Simple Monitor" width="100%" center/>
 
-<br/>
+---
 
-## 🌟 Features
+## 🚀 **Quick Start (Docker)**
+### **1️⃣ Works Only on Linux!** 🐧  
+> 🚨 **OSM requires `/proc` to monitor the host system.**  
+> **It will NOT work on Windows.**  
 
-- **CPU/RAM/DISK** usage collection at configurable intervals (seconds/minutes/hours).  
-- **Automatic daily cleanup** of historical data (older than 30 days).  
-- **SQLite** for persistence, rotating logs (`osm.log`), and real-time console logs.  
-- **Slack & Email alerts** when thresholds exceed your chosen limits.  
-
-<br/>
-
-## 🚀 Quick Start (Docker)
-
-### 1) **Linux-Host Only** 🤖🐧
-
-> **Important**: This container relies on **`/proc`** from the **Linux** host for accurate metrics.  
-> It **will fail** on Windows hosts because **`/proc`** does **not** exist on Windows.  
-
-### 2) **Pull & Run**
-
-## 🛠 Example: Docker Compose
-
-You can also run OSM with your own **`docker-compose.yml`**:
+### **2️⃣ Run with Docker Compose**  
+The easiest way to start OSM:
 
 ```yaml
 version: '3.8'
@@ -43,7 +47,7 @@ services:
       CHECK_INTERVAL: 1
       CHECK_INTERVAL_UNIT: "m"
       SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/XXX/YYY/ZZZ"
-      ALERT_EMAIL: "alerts@example.com" # or multiple email like "user1@example,user2@example"
+      ALERT_EMAIL: "alerts@example.com" # Multiple: "user1@example,user2@example"
       SMTP_SERVER: "smtp.example.com"
       SMTP_PORT: 587
       SMTP_USER: "user@example.com"
@@ -51,8 +55,7 @@ services:
       ALERT_CHANNELS: "SLACK,EMAIL"
     volumes:
       - ./osm_data:/data
-      # For host-level monitoring on Linux, mount /proc:
-      - /proc:/host_proc:ro
+      - /proc:/host_proc:ro  # Required for host-level monitoring
     restart: unless-stopped
 ```
 
@@ -62,12 +65,13 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
+---
+
+### **3️⃣ Run with Docker CLI**
+Want a **quick one-liner**? Run OSM like this:
 
 ```bash
-docker pull orbitturner/orbit-simple-monitor:latest
-
-docker run --rm \
-  -it \
+docker run --rm -it \
   -e YOUR_SERVER_NAME="Sama Server" \
   -e DB_FILE="/data/osm.db" \
   -e CPU_THRESHOLD=80 \
@@ -87,104 +91,155 @@ docker run --rm \
   orbitturner/orbit-simple-monitor:latest
 ```
 
-- **`-it`**: For interactive mode to see logs in real-time.
-- **Mounting `/proc`** from the Linux host to `/host_proc` inside the container.  
-- **Mounting `osm_data/`** on your host to `/data` for persistent DB & logs.
+📌 **Mounts**:
+- `/proc` → Required for **reading system metrics**.
+- `/data` → Stores logs & the SQLite database.
 
 ---
 
-## 📝 Environment Variables
-
-| Variable             | Default              | Description                                                                                          |
-|----------------------|----------------------|------------------------------------------------------------------------------------------------------|
-| **`YOUR_SERVER_NAME`**   | `SamaServerBouNeikhBi` | Friendly name displayed in alerts.                                                                    |
-| **`DB_FILE`**            | `osm.db`              | Path to the SQLite database file.                                                                     |
-| **`CPU_THRESHOLD`**      | `90`                  | CPU usage threshold (%) to trigger alerts.                                                            |
-| **`RAM_THRESHOLD`**      | `90`                  | RAM usage threshold (%) to trigger alerts.                                                            |
-| **`DISK_THRESHOLD`**     | `90`                  | Disk usage threshold (%) to trigger alerts.                                                           |
-| **`CHECK_INTERVAL`**     | `1`                   | Numeric interval for metric collection.                                                               |
-| **`CHECK_INTERVAL_UNIT`**| `m`                   | Interval unit: **`s`** (seconds), **`m`** (minutes), **`h`** (hours).                                 |
-| **`SLACK_WEBHOOK_URL`**  | (empty)              | If set, sends Slack alerts to this webhook.                                                           |
-| **`ALERT_EMAIL`**        | `alerts@example.com`  | Email address for sending alerts. You can also specify multiple addresses like "user1@example,user2@example"                                                                     |
-| **`SMTP_SERVER`**        | `smtp.example.com`    | SMTP server for sending emails.                                                                       |
-| **`SMTP_PORT`**          | `587`                 | SMTP port.                                                                                            |
-| **`SMTP_USER`**          | `user@example.com`    | SMTP username.                                                                                        |
-| **`SMTP_PASS`**          | `secret`              | SMTP password.                                                                                        |
-| **`ALERT_CHANNELS`**     | `SLACK,EMAIL`         | Comma-separated channels: `SLACK`, `EMAIL`, or `SLACK,EMAIL`.                                         |
-
----
-
-
-> **Note**: This **only** works on **Linux**. Windows does not have `/proc`, so host-level metrics won't function.
+## 📝 **Environment Variables**
+| Variable               | Default              | Description |
+|------------------------|----------------------|-------------|
+| **`YOUR_SERVER_NAME`**   | `Sama Server`  | Server name in alerts. |
+| **`DB_FILE`**            | `/data/osm.db`  | Path to database file. |
+| **`CPU_THRESHOLD`**      | `90`  | Alert threshold for CPU usage (%) |
+| **`RAM_THRESHOLD`**      | `90`  | Alert threshold for RAM (%) |
+| **`DISK_THRESHOLD`**     | `90`  | Alert threshold for Disk (%) |
+| **`CHECK_INTERVAL`**     | `1`   | Interval for checks (numeric) |
+| **`CHECK_INTERVAL_UNIT`**| `m`   | Interval unit: `s`(sec), `m`(min), `h`(hour) |
+| **`SLACK_WEBHOOK_URL`**  | _(empty)_  | Slack webhook URL for alerts. |
+| **`ALERT_EMAIL`**        | `alerts@example.com` | Email or Emails (Comma separated list) for alerts. |
+| **`SMTP_SERVER`**        | `smtp.example.com` | SMTP server. |
+| **`SMTP_PORT`**          | `587`  | SMTP port (465 for SSL, 587 for TLS). |
+| **`SMTP_USER`**          | `user@example.com` | SMTP username. |
+| **`SMTP_PASS`**          | `secret` | SMTP password. |
+| **`ALERT_CHANNELS`**     | `SLACK,EMAIL` | `SLACK`, `EMAIL`, or both. |
 
 ---
 
-## 👩‍💻 Developer Guide
+## 👨‍💻 **Developer Guide**
+### **1️⃣ Run Locally (Without Docker)**
+```bash
+git clone https://github.com/orbitturner/orbit-simple-monitor.git
+cd orbit-simple-monitor
+python3 -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+python osm.py
+```
 
-### 1) Run Locally (No Docker)
-
-1. **Clone** this repo:
-   ```bash
-   git clone https://github.com/orbitturner/orbit-simple-monitor.git
-   cd orbit-simple-monitor
-   ```
-2. **Create a virtual environment**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # or venv\Scripts\activate on Windows
-   ```
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. **Run**:
-   ```bash
-   python osm.py
-   ```
-   Logs appear in **stdout** and in `osm.log`.
-
-### 2) Run Tests
-
+### **2️⃣ Run Tests**
 ```bash
 pip install pytest
 pytest
 ```
 
-If everything passes, you’re good to go!
-
-### 3) Build & Push Docker Image
-
-1. **Build**:
-   ```bash
-   docker build -t osm-monitor .
-   ```
-2. **Tag**:
-   ```bash
-   docker tag osm-monitor orbitturner/orbit-simple-monitor:latest
-   ```
-3. **Push**:
-   ```bash
-   docker push orbitturner/orbit-simple-monitor:latest
-   ```
-
-Now your image is available on Docker Hub. 🏆
+### **3️⃣ Build & Push Docker Image**
+```bash
+docker build -t osm-monitor .
+docker tag osm-monitor orbitturner/orbit-simple-monitor:latest
+docker push orbitturner/orbit-simple-monitor:latest
+```
 
 ---
 
-## ⚠️ Platform Note
+## **⚠️ Platform Compatibility**
+| OS      | Supported? | Notes |
+|---------|-----------|-----------------------------|
+| **Linux** 🟢 | ✅ Yes | Fully supported. Mount `/proc` for host monitoring. |
+| **Windows** 🔴 | ❌ No | **Not supported** (`/proc` missing). |
+| **macOS** 🟡 | ⚠️ Limited | No host-level metrics (Docker limits access). |
 
-- **Linux**: Fully supported. Just make sure to mount `/proc:/host_proc:ro` if you want full **host-level** stats.  
-- **Windows**: Currently, no `/proc` -> **OSM** will **not** collect host metrics. It may run but will fail or produce partial data.  
-- **macOS**: Similar limitation for host-level monitoring with Docker; it’s geared for Linux.  
+---
+---
+## 🔐 Security Hardening Guide (For Paranoids & Hardcore Ops)  
+
+If you're security-conscious and want to **lock down** OSM as much as possible, follow these additional hardening steps.  
+
+### 🛡 1) Run OSM with **AppArmor** or **Seccomp**  
+By default, Docker **seccomp** restricts syscalls. You can explicitly enforce a **custom security profile**:  
+```yaml
+    security_opt:
+      - seccomp=your-seccomp-profile.json
+      - apparmor=your-apparmor-profile
+```
+**Recommended**: Use the **default** seccomp profile unless you need extra restrictions.  
+
+
+### 📦 2) Drop Unnecessary Capabilities  
+Minimize privileges by dropping unneeded Linux capabilities:  
+```yaml
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN       # Allow changing file ownership if needed for logging
+      - SETUID      # Allow user switching if absolutely required
+      - SETGID
+```
+If you don’t need user switching, remove `SETUID` and `SETGID`.
+
+
+### 🔐 3) Enforce Read-Only FileSystem  
+For extra security, make the **entire container read-only** except the necessary **data** directory:  
+```yaml
+    read_only: true
+    tmpfs:
+      - /tmp        # Allow temporary files to exist
+    volumes:
+      - ./osm_data:/data
+```
+This prevents **unexpected writes** to the container filesystem.
+
+
+### 🦾 4) Restrict Networking (No Internet Access)  
+If you don’t need OSM to **send alerts externally**, disable networking:  
+```yaml
+    network_mode: none
+```
+Otherwise, **allow only outbound connections** for SMTP/Slack alerts.
+
+
+### 🏴‍☠️ 5) Prevent Privilege Escalation  
+Ensure OSM cannot **gain root privileges** even if compromised:  
+```yaml
+    privileged: false
+    user: "osm"
+```
+This blocks dangerous privilege escalations.
+
+
+### 🔍 6) Audit Logs & Container Activity  
+- Monitor container logs **(via external logging tools)**.  
+- Use **Falco** or **Auditd** to detect suspicious activity inside the container.  
+- Implement **fail2ban** rules for SMTP brute-force attacks (if public).  
+
+
+### 🚨 7) Run OSM in a Firejail Sandbox (Extreme Security)  
+For **maximum containment**, run OSM inside **Firejail**:  
+```bash
+firejail --noprofile --net=none docker run --rm --read-only orbitturner/orbit-simple-monitor
+```
+This isolates OSM even further from the host system.
+
+
+### 🔒 Final Thoughts  
+These steps provide **extra layers of security** beyond what is necessary for most users. If OSM runs in a **trusted internal network**, these **might be overkill**—but for **public-facing environments**, **better safe than sorry**! 🚀
+
+---
+---
+
+## 💬 **Community & Support**
+💡 **Found a bug? Need a feature?** Open an [issue](https://github.com/orbitturner/orbit-simple-monitor/issues)!  
+🔧 **Pull requests welcome!** Follow our [contributing guide](./CONTRIBUTING.md).  
+
+🚀 **Try it out & let us know!**  
+Your server deserves **simple, efficient monitoring** without the bloat! 🔥  
 
 ---
 
-## 💬 Community & Support
+### 🎯 **Links**
+- 🌍 **Docker Hub**: [orbitturner/orbit-simple-monitor](https://hub.docker.com/r/orbitturner/orbit-simple-monitor)  
+- 🛠 **GitHub**: [orbitturner/osm](https://github.com/orbitturner/osm)  
 
-- **Issues** / **Pull Requests**: Are welcome!  
-- **Slack / Email**: For questions or alerts.  
+**Made with ❤️ in Senegal.** 🇸🇳  
 
-🚀 **Thank you** for using **Orbit Simple Monitor** to watch your server’s resources from Earth’s orbit! 🌍🪐🌌  
-
----
-**Made with ❤️ in Senegal**.  
