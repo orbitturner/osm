@@ -50,7 +50,7 @@ CHECK_INTERVAL_UNIT = os.getenv("CHECK_INTERVAL_UNIT", "m").lower()
 # Accept "s", "m", "h" for seconds, minutes, hours
 
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
-ALERT_EMAIL = os.getenv("ALERT_EMAIL", "alerts@example.com")
+ALERT_EMAIL = os.getenv("ALERT_EMAIL", "alerts@example.com").replace(" ", "").split(',')
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.example.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "user@example.com")
