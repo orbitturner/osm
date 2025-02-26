@@ -43,7 +43,7 @@ services:
       CHECK_INTERVAL: 1
       CHECK_INTERVAL_UNIT: "m"
       SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/XXX/YYY/ZZZ"
-      ALERT_EMAIL: "alerts@example.com"
+      ALERT_EMAIL: "alerts@example.com" # or multiple email like "user1@example,user2@example"
       SMTP_SERVER: "smtp.example.com"
       SMTP_PORT: 587
       SMTP_USER: "user@example.com"
@@ -105,7 +105,7 @@ docker run --rm \
 | **`CHECK_INTERVAL`**     | `1`                   | Numeric interval for metric collection.                                                               |
 | **`CHECK_INTERVAL_UNIT`**| `m`                   | Interval unit: **`s`** (seconds), **`m`** (minutes), **`h`** (hours).                                 |
 | **`SLACK_WEBHOOK_URL`**  | (empty)              | If set, sends Slack alerts to this webhook.                                                           |
-| **`ALERT_EMAIL`**        | `alerts@example.com`  | Email address for sending alerts.                                                                     |
+| **`ALERT_EMAIL`**        | `alerts@example.com`  | Email address for sending alerts. You can also specify multiple addresses like "user1@example,user2@example"                                                                     |
 | **`SMTP_SERVER`**        | `smtp.example.com`    | SMTP server for sending emails.                                                                       |
 | **`SMTP_PORT`**          | `587`                 | SMTP port.                                                                                            |
 | **`SMTP_USER`**          | `user@example.com`    | SMTP username.                                                                                        |
