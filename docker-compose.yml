@@ -1,8 +1,7 @@
 services:
   osm:
     build: .
-    container_name: osm-host-monitor
-    privileged: true
+    container_name: osm-host-monito
     environment:
       YOUR_SERVER_NAME: "Sama Server"
       DB_FILE: "/data/osm.db"

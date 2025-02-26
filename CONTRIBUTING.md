@@ -1,51 +1,111 @@
-# Contributing to Orbit Simple Monitor
+# 🚀 Contributing to Orbit Simple Monitor (OSM)
 
-First off, thank you for considering contributing to Orbit Simple Monitor! It's people like you that make OCM such a great tool.
+Hey there! 🎉 Thanks for considering contributing to **OSM**. Whether you're fixing a bug, adding a feature, or improving documentation, your help is **super appreciated!** 💙
 
-## Code of Conduct
+---
 
-This project and everyone participating in it is governed by our Code of Conduct. By participating, you are expected to uphold this code.
+## **🌱 Git Workflow & Branching Best Practices**
 
-## How Can I Contribute?
+To keep the repository **clean** and **organized**, we follow this **Git workflow**:
 
-### Reporting Bugs
+### **1️⃣ Fork & Clone**
+If you’re an external contributor:
+1. **Fork** this repository.
+2. **Clone** your fork:
+   ```bash
+   git clone https://github.com/orbitturner/osm.git
+   cd osm
+   ```
+3. **Set the upstream** (only the first time):
+   ```bash
+   git remote add upstream https://github.com/orbitturner/osm.git
+   ```
 
-- Use the GitHub issue tracker
-- Check if the bug has already been reported
-- Include as many details as possible
-- Use the bug report template
+---
 
-### Suggesting Enhancements
+### **2️⃣ Branching Strategy**
+We use a **feature-based branching strategy** to keep `main` stable.
 
-- Use the GitHub issue tracker
-- Check if the enhancement has already been suggested
-- Include as many details as possible
-- Use the feature request template
+#### **🌲 Main branches:**
+- `main` → **Stable production branch** (only releases & hotfixes).
+- `develop` → **Active development branch** (all new features/bugfixes go here).
 
-### Pull Requests
+#### **🌿 Feature & Fix branches:**
+When working on a new feature or bugfix, create a branch based on `develop`:
 
-1. Fork the repo and create your branch from `main`
-2. If you've added code that should be tested, add tests
-3. If you've changed APIs, update the documentation
-4. Ensure the test suite passes
-5. Make sure your code lints
-6. Issue that pull request!
+```bash
+git checkout develop
+git pull origin develop  # Always ensure it's up-to-date
+git checkout -b feature/cool-new-feature  # Naming: feature/your-feature-name
+```
 
-## Development Process
+✅ **Branch Naming Convention**:
+| Type            | Naming Format               | Example                     |
+|----------------|----------------------------|-----------------------------|
+| Feature        | `feature/<short-name>`      | `feature/slack-integration` |
+| Bugfix         | `fix/<short-name>`          | `fix/email-auth-error`      |
+| Hotfix (urgent fix on main) | `hotfix/<short-name>` | `hotfix/fix-critical-bug` |
+| Release        | `release/<version>`         | `release/v1.2.0`            |
 
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Create a `.env` file with your Supabase credentials
-4. Start the development server: `npm run dev`
+---
 
-## Style Guide
+### **3️⃣ Commit Messages**
+Use **clear, structured** commit messages following this format:
 
-- Use TypeScript
-- Follow the existing code style
-- Use meaningful variable names
-- Add comments for complex logic
-- Keep functions small and focused
+```bash
+git commit -m "fix(email): Handle SMTP authentication issue"
+```
 
-## License
+✅ **Commit Message Format**:
+```
+<type>(<scope>): <short description>
+```
+| Type    | Description                      | Example                      |
+|---------|----------------------------------|------------------------------|
+| `feat`  | New feature                      | `feat(dashboard): Add CPU graph` |
+| `fix`   | Bug fix                          | `fix(logging): Fix missing logs` |
+| `chore` | Maintenance / minor updates      | `chore(deps): Update dependencies` |
+| `docs`  | Documentation changes            | `docs(README): Update usage instructions` |
+| `test`  | Adding/modifying tests           | `test(alerts): Add Slack alert tests` |
+| `refactor` | Code improvement (no new feature) | `refactor(db): Optimize query performance` |
 
-By contributing, you agree that your contributions will be licensed under the AGPL-3.0 License.
+---
+
+### **4️⃣ Push & Create a Pull Request**
+1. **Push your branch**:
+   ```bash
+   git push origin feature/cool-new-feature
+   ```
+2. **Create a Pull Request (PR)** to `develop` on GitHub.
+3. **Follow the PR template** and describe your changes.
+4. A maintainer will review & merge your PR. 🎉
+
+---
+
+### **5️⃣ Keeping Your Fork Up-to-Date**
+If you forked the repo, keep your local copy updated:
+
+```bash
+git checkout develop
+git pull upstream develop
+git push origin develop
+```
+
+---
+
+## **✅ Contribution Guidelines**
+Before submitting your PR:
+
+✅ Ensure **your code follows the linting rules**.  
+✅ Write **meaningful commit messages**.  
+✅ Add **tests if applicable**.  
+✅ Squash unnecessary commits (`git rebase -i`).  
+✅ **Respect the Git workflow** (always branch from `develop`).  
+
+---
+
+## **🚀 Need Help?**
+If you have any questions, **open an issue** or ping us on **[Discussions](https://github.com/orbitturner/osm/discussions)**! 💬
+
+Happy coding! 🎉🚀  
+— The **OSM Team** 🛰  
