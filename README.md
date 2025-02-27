@@ -24,6 +24,35 @@ It **logs everything**, **sends alerts** when usage spikes, and runs in a **tiny
 
 ---
 
+### 📂 **Setting Up Persistent Storage for OSM**  
+
+By default, **Orbit Simple Monitor (OSM)** stores its database (`osm.db`) and logs inside the container at `/data`. To ensure **data persistence**, you should mount a directory from your host system.  
+
+Since the container runs as a **non-root user (`osm`) with UID 100 and GID 101)**, the host directory **must be pre-created and owned by UID 100 & GID 101** to avoid permission issues.  
+
+#### ✅ **1. Create the mount directory on the host**  
+Run this command **before starting the container** to create a persistent storage folder:
+```bash
+mkdir -p ./osm_data
+sudo chown -R 100:101 ./osm_data
+sudo chmod -R 775 ./osm_data
+```
+This ensures that the **OSM container can write logs and store the database without permission errors**.
+
+#### ✅ **2. Use it in `docker-compose.yml`**
+Modify the `volumes` section to **bind-mount the directory**:
+```yaml
+volumes:
+  - ./osm_data:/data
+```
+
+---
+
+### 🚀 **Why Do This?**
+✔️ **Avoids permission errors** when writing logs & database.  
+✔️ **Ensures data persistence** across container restarts.  
+✔️ **Keeps the container running as a non-root user** for security.
+
 ## 🚀 **Quick Start (Docker)**
 ### **1️⃣ Works Only on Linux!** 🐧  
 > 🚨 **OSM requires `/proc` to monitor the host system.**  
@@ -54,7 +83,7 @@ services:
       SMTP_PASS: "secret"
       ALERT_CHANNELS: "SLACK,EMAIL"
     volumes:
-      - ./osm_data:/data
+      - ./osm_data:/data # optional: for logs & database persistence
       - /proc:/host_proc:ro  # Required for host-level monitoring
     restart: unless-stopped
 ```

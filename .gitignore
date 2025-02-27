@@ -12,6 +12,7 @@ dev-compose.yml
 # Ignore build output directories
 dist/
 build/
+osm_data
 
 # Ignore temporary files
 *.tmp
