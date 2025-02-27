@@ -18,7 +18,7 @@ services:
       SMTP_PASS: "secret"
       ALERT_CHANNELS: "SLACK,EMAIL"
     volumes:
-      - ./osm_data:/data
+      - osm_data:/data
       # read-only /proc mount for host-level monitoring
       - /proc:/host_proc:ro
     restart: unless-stopped

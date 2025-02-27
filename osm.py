@@ -18,8 +18,8 @@ Selling or licensing this software for profit is strictly prohibited.
 Full license available at: https://github.com/orbitturner/osm/LICENSE
 """
 
-from pyfiglet import figlet_format
 from loguru import logger
+from pyfiglet import figlet_format
 from email.header import Header
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
@@ -30,8 +30,8 @@ import requests
 import smtplib
 import schedule
 import sqlite3
-import time
 import os
+import time
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1) ENVIRONMENT CONFIGURATION
@@ -50,7 +50,8 @@ CHECK_INTERVAL_UNIT = os.getenv("CHECK_INTERVAL_UNIT", "m").lower()
 # Accept "s", "m", "h" for seconds, minutes, hours
 
 SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
-ALERT_EMAIL = os.getenv("ALERT_EMAIL", "alerts@example.com").replace(" ", "").split(',')
+ALERT_EMAIL = os.getenv(
+    "ALERT_EMAIL", "alerts@example.com").replace(" ", "").split(',')
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.example.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "user@example.com")
@@ -63,7 +64,12 @@ HOSTNAME = os.getenv("YOUR_SERVER_NAME", "SamaServerBouNeikhBi")
 HOST_PROC_PATH = "/host_proc"
 
 # Override psutil's default /proc path for host-level monitoring only if we are not in a windows host
-# psutil.PROCFS_PATH = HOST_PROC_PATH
+psutil.PROCFS_PATH = HOST_PROC_PATH
+
+# Register explicit datetime adapter & converter
+sqlite3.register_adapter(datetime, lambda dt: dt.isoformat())
+sqlite3.register_converter(
+    "DATETIME", lambda s: datetime.fromisoformat(s.decode("utf-8")))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -115,7 +121,7 @@ def init_db(conn=None):
         logger.info(f"💾 No DB file '{DB_FILE}' found. Creating a new one...")
 
     if conn is None:
-        conn = sqlite3.connect(DB_FILE)
+        conn = sqlite3.connect(DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
 
     with conn:
         cursor = conn.cursor()
