@@ -36,29 +36,20 @@ import time
 # ─────────────────────────────────────────────────────────────────────────────
 # 1) ENVIRONMENT CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
-
-DB_FILE = os.getenv("DB_FILE", "osm.db")  # SQLite DB file
-
-# Thresholds (%)
-CPU_THRESHOLD = int(os.getenv("CPU_THRESHOLD", "90"))
-RAM_THRESHOLD = int(os.getenv("RAM_THRESHOLD", "90"))
-DISK_THRESHOLD = int(os.getenv("DISK_THRESHOLD", "90"))
-
-# Interval scheduling
-CHECK_INTERVAL = int(os.getenv("CHECK_INTERVAL", "1"))
-CHECK_INTERVAL_UNIT = os.getenv("CHECK_INTERVAL_UNIT", "m").lower()
-# Accept "s", "m", "h" for seconds, minutes, hours
-
-SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL", "")
-ALERT_EMAIL = os.getenv(
-    "ALERT_EMAIL", "alerts@example.com").replace(" ", "").split(',')
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.example.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "user@example.com")
-SMTP_PASS = os.getenv("SMTP_PASS", "secret")
-ALERT_CHANNELS = os.getenv(
-    "ALERT_CHANNELS", "SLACK,EMAIL")  # e.g. "SLACK,EMAIL"
-HOSTNAME = os.getenv("YOUR_SERVER_NAME", "SamaServerBouNeikhBi")
+ 
+#Notice:  Transforming all environment variables to be manipulated as simple and single variable directly
+class GloblalEnvProperties : 
+    def __init__(self) : 
+        for key_property, val_property in  os.environ.items(): 
+            try : 
+                val_property = int(val_property) 
+            except ValueError: 
+                val_property = val_property
+            
+            setattr(self, key_property,val_property) 
+   
+sys.modules["Osmprops"] = GloblalEnvProperties() 
+from  Osmprops import *  
 
 # Docker host /proc mount path
 HOST_PROC_PATH = "/host_proc"
@@ -75,8 +66,13 @@ sqlite3.register_converter(
 # ─────────────────────────────────────────────────────────────────────────────
 # 2) LOGGING CONFIGURATION (LOGURU)
 # ─────────────────────────────────────────────────────────────────────────────
+try : 
+    OSM_PID 
+except NameError: 
+    OSM_PID="" 
 
-LOG_FORMAT = "<b><magenta>⪢OSM⪡</magenta></b> • <green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | <cyan>{message}</cyan>\n"
+LOG_FORMAT = "<i>[" + str(OSM_PID) +"]</i> <b><magenta>⪢OSM⪡</magenta></b> • <green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level}</level> | <cyan>{message}</cyan>\n" 
+
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 # Remove default handler
@@ -108,33 +104,6 @@ def print_ascii_banner():
     banner = figlet_format("OrbitSimpleMonitor", font="slant")
     logger.info("\n" + banner + "🚀 Welcome to Orbit Simple Monitor (OSM)!\n")
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 4) INIT SQLITE DB
-# ─────────────────────────────────────────────────────────────────────────────
-def init_db(conn=None):
-    """Initializes the SQLite database and creates required tables."""
-    # Check if DB already exists
-    if os.path.exists(DB_FILE):
-        logger.info(f"🗄 Existing DB file '{DB_FILE}' detected. Reusing it.")
-    else:
-        logger.info(f"💾 No DB file '{DB_FILE}' found. Creating a new one...")
-
-    if conn is None:
-        conn = sqlite3.connect(DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
-
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS usage_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp DATETIME NOT NULL,
-                cpu_usage REAL NOT NULL,
-                ram_usage REAL NOT NULL,
-                disk_usage REAL NOT NULL
-            )
-        """)
-        conn.commit()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -285,11 +254,9 @@ def handle_signal(signum, frame):
     logger.warning(f"👋 Caught signal {signum}, shutting down gracefully...")
     sys.exit(0)
 
-
-def main():
+def main(): 
     print_ascii_banner()
     logger.info("🎉 Initializing Orbit Simple Monitor database...")
-    init_db()
 
     schedule_collections()
     logger.info("⏱  Scheduling daily cleanup at 00:00.")
@@ -297,7 +264,7 @@ def main():
 
     logger.info("🚀 Orbit Simple Monitor started. Monitoring your host now...")
 
-    # Catch SIGINT (Ctrl+C) and SIGTERM
+    # Catch SIGINT (Ctrl+C) and SIGTERM  (kill  pid)  
     signal.signal(signal.SIGINT, handle_signal)
     signal.signal(signal.SIGTERM, handle_signal)
 

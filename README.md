@@ -26,16 +26,22 @@ It **logs everything**, **sends alerts** when usage spikes, and runs in a **tiny
 
 ### 📂 **Setting Up Persistent Storage for OSM**  
 
-By default, **Orbit Simple Monitor (OSM)** stores its database (`osm.db`) and logs inside the container at `/data`. To ensure **data persistence**, you should mount a directory from your host system.  
+By default, **Orbit Simple Monitor (OSM)** stores its database (`osm.db`) and logs inside the container at `/data`. To ensure **data persistence**, you should mount a directory from your host system. 
+
+### **Configuration Environment Settings**
+The Configuration  file dedicated to the Environement Setting named (`osmconf.cfg`) is located in  `/etc/osm/`. 
+See template in  config folder in this project. It can be bind to your host  and use it as default config  on osm startup.
+To clarify the file should have  `osmconf.cfg`. 
 
 Since the container runs as a **non-root user (`osm`) with UID 100 and GID 101)**, the host directory **must be pre-created and owned by UID 100 & GID 101** to avoid permission issues.  
 
 #### ✅ **1. Create the mount directory on the host**  
 Run this command **before starting the container** to create a persistent storage folder:
 ```bash
-mkdir -p ./osm_data
-sudo chown -R 100:101 ./osm_data
-sudo chmod -R 775 ./osm_data
+mkdir -p ./osm_data 
+mkdir -p ./osm_config
+sudo chown -R 100:101 ./osm_data  ./osm_config
+sudo chmod -R 775 ./osm_data ./osm_config
 ```
 This ensures that the **OSM container can write logs and store the database without permission errors**.
 
@@ -44,6 +50,7 @@ Modify the `volumes` section to **bind-mount the directory**:
 ```yaml
 volumes:
   - ./osm_data:/data
+  - ./osm_config:/etc/osm
 ```
 
 ---
@@ -58,6 +65,14 @@ volumes:
 > 🚨 **OSM requires `/proc` to monitor the host system.**  
 > **It will NOT work on Windows.**  
 
+### ** Run Interactively with  Docker** 
+```bash  
+# but should build fisrt 
+$ docker  build . -t <name>  
+$ docker run  -it -v /proc:/host_proc  <name> ash 
+# once you are inside just launch the osm manager
+$ osmon  
+```
 ### **2️⃣ Run with Docker Compose**  
 The easiest way to start OSM:
 
@@ -83,15 +98,19 @@ services:
       SMTP_PASS: "secret"
       ALERT_CHANNELS: "SLACK,EMAIL"
     volumes:
-      - ./osm_data:/data # optional: for logs & database persistence
+      - ./osm_conf:/etc/osm  # optional: handle environment configuration
+      - ./osm_data:/data     # optional: for logs & database persistence
       - /proc:/host_proc:ro  # Required for host-level monitoring
     restart: unless-stopped
 ```
 
 Then:
 ```bash
-docker-compose up -d
-docker-compose logs -f
+# For any modifcation should build first 
+$ docker-compose build osm
+
+$ docker-compose up -d
+$ docker-compose logs -f
 ```
 
 ---
@@ -116,14 +135,15 @@ docker run --rm -it \
   -e SMTP_PASS="secret" \
   -e ALERT_CHANNELS="SLACK,EMAIL" \
   --mount type=bind,source="$(pwd)/osm_data",target=/data \
+  --mount type=bind,source="$(pwd)/osm_config",target=/etc/osm \
   --mount type=bind,source=/proc,target=/host_proc,readonly \
   orbitturner/orbit-simple-monitor:latest
 ```
 
 📌 **Mounts**:
-- `/proc` → Required for **reading system metrics**.
-- `/data` → Stores logs & the SQLite database.
-
+- `/proc`    → Required for **reading system metrics**.
+- `/data`    → Stores logs & the SQLite database.
+- `/etc/osm` → Stores Environment configuration 
 ---
 
 ## 📝 **Environment Variables**
