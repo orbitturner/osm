@@ -1,0 +1,19 @@
+export PATH="/app/bin:/app/service:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+export PAGER=less
+umask 022
+
+HNAME=osm
+
+for script in /etc/profile.d/*.sh ; do
+          if [ -r "$script"  ] ; then
+            . "$script"
+            fi
+            done
+unset script
+unset PS1 
+
+PS1="\[\e[34m\]${HNAME}\[\e[m\]@\[\e[33m\]\w\[\e[m\]"
+test [ "$(id -u)" -eq 0 ] && PS1="${PS1}# " || PS1="${PS1}\$ "
+reset
+clear 
