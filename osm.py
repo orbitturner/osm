@@ -18,8 +18,8 @@ Selling or licensing this software for profit is strictly prohibited.
 Full license available at: https://github.com/orbitturner/osm/LICENSE
 """
 
-from loguru import logger
 from pyfiglet import figlet_format
+from loguru import logger
 from email.header import Header
 from email.mime.text import MIMEText
 from datetime import datetime, timedelta
@@ -30,8 +30,8 @@ import requests
 import smtplib
 import schedule
 import sqlite3
-import os
 import time
+import os
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1) ENVIRONMENT CONFIGURATION
@@ -110,79 +110,90 @@ def print_ascii_banner():
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4) INIT SQLITE DB
+# 4.A) ERROR HANDLING FUNCTION
 # ─────────────────────────────────────────────────────────────────────────────
+def handle_sqlite_error(e, function_name):
+    """Handles SQLite permission errors and logs the correct fix."""
+    if "unable to open database file" in str(e) or "read-only" in str(e).lower():
+        logger.error(f"❌ {function_name}: Database access error: {e}")
+        logger.warning(
+            "🔧 Make sure the volume is writable! If using Docker, run:")
+        logger.warning("    sudo chown -R 100:101 ./osm_data")
+        logger.warning("    sudo chmod -R 775 ./osm_data")
+    else:
+        logger.error(f"❌ {function_name}: Unexpected SQLite error: {e}")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 4.B) INIT SQLITE DB
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 def init_db(conn=None):
     """Initializes the SQLite database and creates required tables."""
-    # Check if DB already exists
-    if os.path.exists(DB_FILE):
-        logger.info(f"🗄 Existing DB file '{DB_FILE}' detected. Reusing it.")
-    else:
-        logger.info(f"💾 No DB file '{DB_FILE}' found. Creating a new one...")
+    try:
+        # Check if DB already exists
+        if os.path.exists(DB_FILE):
+            logger.info(
+                f"🗄 Existing DB file '{DB_FILE}' detected. Reusing it.")
+        else:
+            logger.info(
+                f"💾 No DB file '{DB_FILE}' found. Creating a new one...")
 
-    if conn is None:
-        conn = sqlite3.connect(DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
+        if conn is None:
+            conn = sqlite3.connect(
+                DB_FILE, detect_types=sqlite3.PARSE_DECLTYPES)
 
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS usage_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                timestamp DATETIME NOT NULL,
-                cpu_usage REAL NOT NULL,
-                ram_usage REAL NOT NULL,
-                disk_usage REAL NOT NULL
-            )
-        """)
-        conn.commit()
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS usage_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp DATETIME NOT NULL,
+                    cpu_usage REAL NOT NULL,
+                    ram_usage REAL NOT NULL,
+                    disk_usage REAL NOT NULL
+                )
+            """)
+            conn.commit()
 
+    except sqlite3.OperationalError as e:
+        handle_sqlite_error(e, "init_db")
+
+    except Exception as e:
+        logger.error(f"❌ init_db: Unexpected error: {e}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 5) COLLECT METRICS
 # ─────────────────────────────────────────────────────────────────────────────
+
+
 def collect_metrics(conn=None):
     """Collect CPU, RAM, and DISK usage from the host, store in DB, and send alerts if needed."""
-    cpu_usage = psutil.cpu_percent(interval=1)
-    ram_usage = psutil.virtual_memory().percent
-    disk_usage = psutil.disk_usage("/").percent
+    try:
+        cpu_usage = psutil.cpu_percent(interval=1)
+        ram_usage = psutil.virtual_memory().percent
+        disk_usage = psutil.disk_usage("/").percent
 
-    now = datetime.now()
-    logger.info(
-        f"🩺 CPU: {cpu_usage:.2f}% | RAM: {ram_usage:.2f}% | DISK: {disk_usage:.2f}%")
+        now = datetime.now()
+        logger.info(
+            f"🩺 CPU: {cpu_usage:.2f}% | RAM: {ram_usage:.2f}% | DISK: {disk_usage:.2f}%")
 
-    if conn is None:
-        conn = sqlite3.connect(DB_FILE)
+        if conn is None:
+            conn = sqlite3.connect(DB_FILE)
 
-    with conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO usage_history (timestamp, cpu_usage, ram_usage, disk_usage)
-            VALUES (?, ?, ?, ?)
-        """, (now, cpu_usage, ram_usage, disk_usage))
-        conn.commit()
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO usage_history (timestamp, cpu_usage, ram_usage, disk_usage)
+                VALUES (?, ?, ?, ?)
+            """, (now, cpu_usage, ram_usage, disk_usage))
+            conn.commit()
 
-    # Debug logs for threshold checks
-    logger.debug(
-        f"✅ Threshold Check - CPU({cpu_usage}%) >= {CPU_THRESHOLD}? {cpu_usage >= CPU_THRESHOLD}")
-    logger.debug(
-        f"✅ Threshold Check - RAM({ram_usage}%) >= {RAM_THRESHOLD}? {ram_usage >= RAM_THRESHOLD}")
-    logger.debug(
-        f"✅ Threshold Check - DISK({disk_usage}%) >= {DISK_THRESHOLD}? {disk_usage >= DISK_THRESHOLD}")
+    except sqlite3.OperationalError as e:
+        handle_sqlite_error(e, "collect_metrics")
 
-    # If threshold exceeded, trigger alert
-    if (cpu_usage >= CPU_THRESHOLD) or (ram_usage >= RAM_THRESHOLD) or (disk_usage >= DISK_THRESHOLD):
-        alert_msg = (
-            f"⚠️ **Orbit Simple Monitor Alert** ⚠️\n\n"
-            f"🏠 Host: {HOSTNAME}\n"
-            f"🕒 Timestamp: {now}\n"
-            f"🔴 CPU Usage: {cpu_usage:.2f}% (Threshold = {CPU_THRESHOLD}%)\n"
-            f"🔴 RAM Usage: {ram_usage:.2f}% (Threshold = {RAM_THRESHOLD}%)\n"
-            f"🔴 DISK Usage: {disk_usage:.2f}% (Threshold = {DISK_THRESHOLD}%)\n"
-        )
-        logger.debug("🚀 send_alert() should be triggered now!")
-        send_alert(alert_msg)
-    else:
-        logger.debug("⚠️ No alert triggered - conditions not met!")
+    except Exception as e:
+        logger.error(f"❌ collect_metrics: Unexpected error: {e}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
